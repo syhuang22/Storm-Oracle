@@ -2,6 +2,8 @@ import boto3
 import requests
 import os
 
+
+
 # AWS 配置
 ACCESS_KEY = os.environ.get('AWS_ACCESS_KEY_ID')
 SECRET_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
