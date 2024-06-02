@@ -1,24 +1,9 @@
+# sst.py
 import os
 import requests
 from bs4 import BeautifulSoup
-import boto3
 import logging
-
-# AWS configuration
-ACCESS_KEY = os.environ.get('AWS_ACCESS_KEY_ID')
-SECRET_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
-BUCKET_NAME = 'my-storm-oracle-data'
-
-# Initialize S3 client
-s3_client = boto3.client(
-    's3',
-    aws_access_key_id=ACCESS_KEY,
-    aws_secret_access_key=SECRET_KEY
-)
-
-# Configure logging
-log_file = '/home/azureuser/Storm-Oracle/logs/download_sst.log'
-logging.basicConfig(filename=log_file, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+from utils import s3_client, BUCKET_NAME, clear_log_file, clear_s3
 
 def download_noaa_sst(year, month, bucket_name, s3_path_prefix):
     base_url = 'https://www.ncei.noaa.gov/data/sea-surface-temperature-optimum-interpolation/v2.1/access/avhrr/'
@@ -68,7 +53,17 @@ if __name__ == "__main__":
     years = range(2013, 2024)  # From 2013 to 2023
     months = range(1, 13)  # Example months, adjust range as needed
     s3_path_prefix = 'noaa/raw/sst'  # S3 path prefix
+    attribute = 'sst'
 
+    # Configure logging
+    log_file = '/home/azureuser/Storm-Oracle/logs/download_sst.log'
+    logging.basicConfig(filename=log_file, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+    # Clear log file and S3 directory
+    clear_log_file(log_file)
+    clear_s3(BUCKET_NAME, s3_path_prefix, attribute)
+
+    # Download and upload SST data
     for year in years:
         for month in months:
             if not download_noaa_sst(year, month, BUCKET_NAME, s3_path_prefix):
