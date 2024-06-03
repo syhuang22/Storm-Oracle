@@ -3,10 +3,8 @@ __pycache__/
 *.py[cod]
 *.pyo
 
-
 # Ignore logs
-/home/azureuser/Storm-Oracle/logs/
-*.log
+logs/*.log
 
 # Ignore temporary files
 *.tmp
