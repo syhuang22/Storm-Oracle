@@ -1,7 +1,7 @@
+# download_gsod_data.py
 import os
 import requests
 from bs4 import BeautifulSoup
-import boto3
 import logging
 from utils import s3_client, BUCKET_NAME, clear_log_file, clear_s3
 
@@ -20,7 +20,33 @@ def download_gsod_data(year, bucket_name, s3_path_prefix):
         href = link.get('href')
         if href.endswith('.csv'):
             file_url = f'{base_url}{href}'
-            download_and_upload_file(file_url, year, href, bucket_name, s3_path_prefix)
+            if is_us_file(file_url, href):
+                download_and_upload_file(file_url, year, href, bucket_name, s3_path_prefix)
+
+def is_us_file(file_url, file_name):
+    response = requests.get(file_url)
+    if response.status_code == 200:
+        temp_file_path = f'/tmp/temp.csv'
+        with open(temp_file_path, 'wb') as file:
+            file.write(response.content)
+        with open(temp_file_path, 'r') as file:
+            # Skip the header line
+            file.readline()
+            second_line = file.readline()
+            # Split the line by commas and check if the last element is 'US'
+            if second_line:
+                fields = second_line.split(',')
+                if len(fields) > 6:
+                    # Joining the last two fields to handle cases where the NAME field has a comma
+                    name_field = fields[5].strip() + ', ' + fields[6].strip()
+                    logging.info(f"Checking file {file_name}, NAME field: {name_field}")
+                    if fields[6].endswith("US\""):
+                        return True
+                    else:
+                        logging.info(f"Skipped {file_name}: Not a US station")
+    else:
+        logging.info(f"Could not access file: {file_url}")
+    return False
 
 def download_and_upload_file(url, year, file_name, bucket_name, s3_path_prefix):
     response = requests.get(url)
@@ -34,7 +60,7 @@ def download_and_upload_file(url, year, file_name, bucket_name, s3_path_prefix):
         # Upload to S3
         s3_key = f'{s3_path_prefix}/{year}/{file_name}'
         s3_client.upload_file(temp_file_path, bucket_name, s3_key)
-        logging.info(f"Uploaded to S3: s3://{bucket_name}/{s3_key}")
+        logging.info(f'Uploaded to S3: s3://{bucket_name}/{s3_key}')
         
         # Remove the temporary file
         os.remove(temp_file_path)

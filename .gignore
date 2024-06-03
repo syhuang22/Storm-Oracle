@@ -1,7 +1,8 @@
-# Ignore Python bytecode
+# Ignore Python cache files
 __pycache__/
 *.py[cod]
-*$py.class
+*.pyo
+
 
 # Ignore logs
 /home/azureuser/Storm-Oracle/logs/
