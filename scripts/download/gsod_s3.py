@@ -45,7 +45,7 @@ def is_us_file(file_url, file_name):
                     else:
                         logging.info(f"Skipped {file_name}: Not a US station")
     else:
-        logging.info(f"Could not access file: {file_url}")
+        logging.error(f"Could not access file: {file_url}")
     return False
 
 def download_and_upload_file(url, year, file_name, bucket_name, s3_path_prefix):
